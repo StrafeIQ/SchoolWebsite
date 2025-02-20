@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isam Eldein Farid's Website</title>
+    <style>
+        /* Basic page styling */
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 2rem;
+        }
+
+            h1 span {
+                font-weight: bold;
+                color: #ff0;
+            }
+
+        /* Container for the game */
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background-color: #444;
+            border: 2px solid #ff0;
+            overflow: hidden;
+            margin-top: 50px;
+            border-radius: 10px;
+        }
+
+        /* Dino Styling */
+        .dino {
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            width: 50px;
+            height: 50px;
+            background-image: url('https://c0.klipartz.com/pngpicture/162/143/gratis-png-fotografia-monika-pixel-art.png');
+            background-size: cover;
+            transition: transform 0.3s ease;
+        }
+
+        /* Obstacle styling */
+        .obstacle {
+            position: absolute;
+            bottom: 0;
+            right: -30px;
+            width: 30px;
+            height: 30px;
+            background-color: red;
+            animation: moveObstacle 2s linear infinite;
+        }
+
+        /* Obstacle animation */
+        @keyframes moveObstacle {
+            0% {
+                right: -30px;
+            }
+
+            100% {
+                right: 100%;
+            }
+        }
+
+        /* Score display */
+        .score {
+            font-size: 24px;
+            color: yellow;
+            font-weight: bold;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        /* Inputs and form styling */
+        input {
+            background-color: #444;
+            color: white;
+            border: 1px solid #ff0;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        .container {
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+            .container a {
+                color: #ff0;
+                text-decoration: none;
+                font-weight: bold;
+            }
+
+                .container a:hover {
+                    text-decoration: underline;
+                }
+
+        iframe {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 400px;
+            height: 400px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Welcome<span> Isam's</span> website <br> <span>Dino Game</span> <br> If you need some <span>cool</span> stuff, check below!</h1>
+
+    <div class="container">
+        Email: <input type="email"><br><br>
+        Phone: +971<input type="number"><br><br>
+        Username: <input type="text"><br><br>
+        Password: <input type="password"><br><br>
+        <a href="https://www.github.com/xNotTozic" target="_blank">My GitHub Homepage</a><br><br>
+
+        <img src="https://media.tenor.com/Y_MStGX2AQoAAAAd/anime.gif" width="200">
+    </div>
+
+    <!-- Score -->
+    <div class="score" id="score">Score: 0</div>
+
+    <!-- Game container -->
+    <div class="game-container">
+        <div class="dino" id="dino"></div>
+        <div class="obstacle"></div>
+    </div>
+
+    <!-- Fixed iframes -->
+    <iframe src="https://chatgpt.com" title="ChatGPT" width="100" height="500"></iframe>
+    <iframe src="https://adbips.com" title="ADBIPS" width="100" height="500"></iframe>
+
+    <script>
+        const dino = document.getElementById("dino");
+        const obstacle = document.querySelector(".obstacle");
+        const scoreElement = document.getElementById("score");
+
+        let jumping = false;
+        let score = 0;
+
+        // Jump functionality when space key is pressed
+        document.addEventListener("keydown", function (e) {
+            if (e.code === "Space" && !jumping) {
+                jumping = true;
+                dino.style.transition = "transform 0.3s ease";
+                dino.style.transform = "translateY(-100px)"; // Dino jumps up
+                setTimeout(() => {
+                    dino.style.transform = "translateY(0)"; // Dino comes back down
+                    jumping = false;
+                }, 500);
+            }
+        });
+
+        // Collision detection and game reset
+        setInterval(function () {
+            const dinoRect = dino.getBoundingClientRect();
+            const obstacleRect = obstacle.getBoundingClientRect();
+
+            // Check if the dino has collided with the obstacle
+            if (
+                dinoRect.right > obstacleRect.left &&
+                dinoRect.left < obstacleRect.right &&
+                dinoRect.bottom > obstacleRect.top &&
+                dinoRect.top < obstacleRect.bottom
+            ) {
+                resetGame(); // Reset game after collision
+            }
+
+            // Check if the dino successfully jumps over the obstacle
+            if (dinoRect.top < obstacleRect.bottom && !jumping) {
+                score++; // Increase score
+                scoreElement.textContent = "Score: " + score;
+            }
+
+        }, 10);
+
+        // Reset the game (dino and obstacle)
+        function resetGame() {
+            score = 0; // Reset score
+            scoreElement.textContent = "Score: 0"; // Update score display
+            dino.style.transition = "none";
+            dino.style.transform = "translateY(0)"; // Reset dino position
+            obstacle.style.animation = "none"; // Stop the obstacle animation
+            setTimeout(() => {
+                obstacle.style.animation = "moveObstacle 2s linear infinite"; // Restart obstacle animation
+                obstacle.style.right = "-30px"; // Reset obstacle position
+            }, 100); // Delay to allow for reset
+        }
+
+    </script>
+</body>
+
+</html>
