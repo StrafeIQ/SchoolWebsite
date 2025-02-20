@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Isam Eldein Farid's Website</title>
     <style>
-        /* Basic page styling */
         body {
             font-family: 'Arial', sans-serif;
             text-align: center;
@@ -16,19 +15,6 @@
             padding: 0;
         }
 
-        h1 {
-            background-color: rgba(255, 255, 255, 0.3);
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 2rem;
-        }
-
-            h1 span {
-                font-weight: bold;
-                color: #ff0;
-            }
-
-        /* Container for the game */
         .game-container {
             position: relative;
             width: 100%;
@@ -40,7 +26,6 @@
             border-radius: 10px;
         }
 
-        /* Dino Styling */
         .dino {
             position: absolute;
             bottom: 0;
@@ -52,7 +37,6 @@
             transition: transform 0.3s ease;
         }
 
-        /* Obstacle styling */
         .obstacle {
             position: absolute;
             bottom: 0;
@@ -63,7 +47,6 @@
             animation: moveObstacle 2s linear infinite;
         }
 
-        /* Obstacle animation */
         @keyframes moveObstacle {
             0% {
                 right: -30px;
@@ -74,140 +57,137 @@
             }
         }
 
-        /* Score display */
-        .score {
-            font-size: 24px;
+        .score-board {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
             color: yellow;
             font-weight: bold;
-            position: absolute;
-            top: 20px;
-            left: 20px;
-        }
-
-        /* Inputs and form styling */
-        input {
-            background-color: #444;
-            color: white;
-            border: 1px solid #ff0;
-            padding: 10px;
-            margin: 5px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
             border-radius: 5px;
         }
 
-        .container {
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            border-radius: 15px;
+        .leaderboard {
             margin-top: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            display: inline-block;
         }
 
-            .container a {
-                color: #ff0;
-                text-decoration: none;
-                font-weight: bold;
-            }
-
-                .container a:hover {
-                    text-decoration: underline;
-                }
-
-        iframe {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 400px;
-            height: 400px;
-            border: none;
+        .login-container, .signup-container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            margin: 20px auto;
+            width: 300px;
+        }
+
+        input {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            padding: 10px;
+            border: 1px solid #ff0;
+            background: #444;
+            color: white;
         }
     </style>
 </head>
 
 <body>
-    <h1>Welcome<span> Isam's</span> website <br> <span>Dino Game</span> <br> If you need some <span>cool</span> stuff, check below!</h1>
+    <h1>Welcome to Isam's Dino Game</h1>
 
-    <div class="container">
-        Email: <input type="email"><br><br>
-        Phone: +971<input type="number"><br><br>
-        Username: <input type="text"><br><br>
-        Password: <input type="password"><br><br>
-        <a href="https://www.github.com/xNotTozic" target="_blank">My GitHub Homepage</a><br><br>
-
-        <img src="images/cool.jpg" width="200">
+    <div class="login-container">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Enter Username">
+        <button onclick="login()">Login</button>
     </div>
 
-    <!-- Score -->
-    <div class="score" id="score">Score: 0</div>
-
-    <!-- Game container -->
-    <div class="game-container">
+    <div class="game-container" style="display: none;" id="game">
+        <div class="score-board" id="score-board">Score: 0 | High Score: 0</div>
         <div class="dino" id="dino"></div>
         <div class="obstacle"></div>
     </div>
 
-    <!-- Fixed iframes -->
-    <iframe src="https://chatgpt.com" title="ChatGPT" width="100" height="500"></iframe>
-    <iframe src="https://adbips.com" title="ADBIPS" width="100" height="500"></iframe>
+    <div class="leaderboard">
+        <h2>Leaderboard</h2>
+        <ol id="leaderboard-list"></ol>
+    </div>
 
     <script>
+        let currentUser = "";
         const dino = document.getElementById("dino");
         const obstacle = document.querySelector(".obstacle");
-        const scoreElement = document.getElementById("score");
+        const scoreBoard = document.getElementById("score-board");
+        const leaderboardList = document.getElementById("leaderboard-list");
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || {};
+
+        function login() {
+            currentUser = document.getElementById("username").value;
+            if (!currentUser) {
+                alert("Please enter a username");
+                return;
+            }
+            document.querySelector(".login-container").style.display = "none";
+            document.getElementById("game").style.display = "block";
+            if (!leaderboard[currentUser]) {
+                leaderboard[currentUser] = 0;
+            }
+            updateLeaderboard();
+        }
 
         let jumping = false;
         let score = 0;
 
-        // Jump functionality when space key is pressed
         document.addEventListener("keydown", function (e) {
             if (e.code === "Space" && !jumping) {
                 jumping = true;
                 dino.style.transition = "transform 0.3s ease";
-                dino.style.transform = "translateY(-100px)"; // Dino jumps up
+                dino.style.transform = "translateY(-100px)";
                 setTimeout(() => {
-                    dino.style.transform = "translateY(0)"; // Dino comes back down
+                    dino.style.transform = "translateY(0)";
                     jumping = false;
                 }, 500);
             }
         });
 
-        // Collision detection and game reset
         setInterval(function () {
             const dinoRect = dino.getBoundingClientRect();
             const obstacleRect = obstacle.getBoundingClientRect();
 
-            // Check if the dino has collided with the obstacle
             if (
                 dinoRect.right > obstacleRect.left &&
                 dinoRect.left < obstacleRect.right &&
                 dinoRect.bottom > obstacleRect.top &&
                 dinoRect.top < obstacleRect.bottom
             ) {
-                resetGame(); // Reset game after collision
+                resetGame();
             }
 
-            // Check if the dino successfully jumps over the obstacle
             if (dinoRect.top < obstacleRect.bottom && !jumping) {
-                score++; // Increase score
-                scoreElement.textContent = "Score: " + score;
+                score++;
+                scoreBoard.textContent = `Score: ${score} | High Score: ${leaderboard[currentUser]}`;
             }
-
         }, 10);
 
-        // Reset the game (dino and obstacle)
         function resetGame() {
-            score = 0; // Reset score
-            scoreElement.textContent = "Score: 0"; // Update score display
-            dino.style.transition = "none";
-            dino.style.transform = "translateY(0)"; // Reset dino position
-            obstacle.style.animation = "none"; // Stop the obstacle animation
-            setTimeout(() => {
-                obstacle.style.animation = "moveObstacle 2s linear infinite"; // Restart obstacle animation
-                obstacle.style.right = "-30px"; // Reset obstacle position
-            }, 100); // Delay to allow for reset
+            if (score > leaderboard[currentUser]) {
+                leaderboard[currentUser] = score;
+                localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+            }
+            updateLeaderboard();
+            score = 0;
+            scoreBoard.textContent = `Score: 0 | High Score: ${leaderboard[currentUser]}`;
         }
 
+        function updateLeaderboard() {
+            let sorted = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
+            leaderboardList.innerHTML = sorted.map(([user, score]) => `<li>${user}: ${score}</li>`).join('');
+        }
     </script>
 </body>
-
 </html>
