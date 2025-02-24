@@ -78,8 +78,7 @@
             display: inline-block;
         }
 
-        .login-container,
-        .signup-container {
+        .login-container, .signup-container {
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             border-radius: 10px;
@@ -119,43 +118,13 @@
         <ol id="leaderboard-list"></ol>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
-
-        // Your Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC8RGEpXMLyK3JW78J63OmUsAQNDREfFeQ",
-            authDomain: "school-website-1e4dd.firebaseapp.com",
-            projectId: "school-website-1e4dd",
-            storageBucket: "school-website-1e4dd.firebasestorage.app",
-            messagingSenderId: "697135228861",
-            appId: "1:697135228861:web:ac984d9005b66840ab94d4",
-            measurementId: "G-XD7CPTQ13G"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-
+    <script>
         let currentUser = "";
         const dino = document.getElementById("dino");
         const obstacle = document.querySelector(".obstacle");
         const scoreBoard = document.getElementById("score-board");
         const leaderboardList = document.getElementById("leaderboard-list");
-        let leaderboard = {};
-
-        // Fetch the leaderboard from Firebase
-        function fetchLeaderboard() {
-            const leaderboardRef = ref(database, 'leaderboard');
-            get(leaderboardRef).then((snapshot) => {
-                leaderboard = snapshot.val() || {};
-                updateLeaderboard();
-            }).catch((error) => {
-                console.error("Error fetching leaderboard data: ", error);
-            });
-        }
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || {};
 
         function login() {
             currentUser = document.getElementById("username").value;
@@ -165,7 +134,10 @@
             }
             document.querySelector(".login-container").style.display = "none";
             document.getElementById("game").style.display = "block";
-            fetchLeaderboard(); // Fetch the leaderboard on login
+            if (!leaderboard[currentUser]) {
+                leaderboard[currentUser] = 0;
+            }
+            updateLeaderboard();
         }
 
         let jumping = false;
@@ -198,33 +170,24 @@
 
             if (dinoRect.top < obstacleRect.bottom && !jumping) {
                 score++;
-                scoreBoard.textContent = `Score: ${score} | High Score: ${leaderboard[currentUser] || 0}`;
+                scoreBoard.textContent = `Score: ${score} | High Score: ${leaderboard[currentUser]}`;
             }
         }, 10);
 
         function resetGame() {
-            if (score > (leaderboard[currentUser] || 0)) {
+            if (score > leaderboard[currentUser]) {
                 leaderboard[currentUser] = score;
-                updateLeaderboardInFirebase();
+                localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
             }
+            updateLeaderboard();
             score = 0;
-            scoreBoard.textContent = `Score: 0 | High Score: ${leaderboard[currentUser] || 0}`;
+            scoreBoard.textContent = `Score: 0 | High Score: ${leaderboard[currentUser]}`;
         }
 
         function updateLeaderboard() {
             let sorted = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
             leaderboardList.innerHTML = sorted.map(([user, score]) => `<li>${user}: ${score}</li>`).join('');
         }
-
-        function updateLeaderboardInFirebase() {
-            const leaderboardRef = ref(database, 'leaderboard/' + currentUser);
-            set(leaderboardRef, {
-                score: leaderboard[currentUser]
-            }).catch((error) => {
-                console.error("Error updating leaderboard: ", error);
-            });
-        }
     </script>
 </body>
-
 </html>
