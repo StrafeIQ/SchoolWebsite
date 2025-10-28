@@ -24,6 +24,7 @@
             overflow: hidden;
             margin-top: 50px;
             border-radius: 10px;
+            touch-action: manipulation; /* helps mobile taps */
         }
 
         .dino {
@@ -78,7 +79,7 @@
             display: inline-block;
         }
 
-        .login-container, .signup-container {
+        .login-container {
             background: rgba(0, 0, 0, 0.5);
             padding: 20px;
             border-radius: 10px;
@@ -124,6 +125,8 @@
         const obstacle = document.querySelector(".obstacle");
         const scoreBoard = document.getElementById("score-board");
         const leaderboardList = document.getElementById("leaderboard-list");
+        const gameContainer = document.getElementById("game");
+
         let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || {};
 
         function login() {
@@ -143,18 +146,29 @@
         let jumping = false;
         let score = 0;
 
+        function jump() {
+            if (jumping) return;
+            jumping = true;
+            dino.style.transition = "transform 0.3s ease";
+            dino.style.transform = "translateY(-100px)";
+            setTimeout(() => {
+                dino.style.transform = "translateY(0)";
+                jumping = false;
+            }, 500);
+        }
+
+        // Keyboard jump
         document.addEventListener("keydown", function (e) {
-            if (e.code === "Space" && !jumping) {
-                jumping = true;
-                dino.style.transition = "transform 0.3s ease";
-                dino.style.transform = "translateY(-100px)";
-                setTimeout(() => {
-                    dino.style.transform = "translateY(0)";
-                    jumping = false;
-                }, 500);
-            }
+            if (e.code === "Space") jump();
         });
 
+        // Mobile tap jump
+        gameContainer.addEventListener("touchstart", function (e) {
+            e.preventDefault();
+            jump();
+        });
+
+        // Game loop
         setInterval(function () {
             const dinoRect = dino.getBoundingClientRect();
             const obstacleRect = obstacle.getBoundingClientRect();
